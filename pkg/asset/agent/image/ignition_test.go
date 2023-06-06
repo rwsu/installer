@@ -243,7 +243,6 @@ func TestRetrieveRendezvousIP(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestAddHostConfig_Roles(t *testing.T) {
@@ -307,7 +306,6 @@ func TestAddHostConfig_Roles(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func generatedFiles(otherFiles ...string) []string {
@@ -327,7 +325,8 @@ func generatedFiles(otherFiles ...string) []string {
 
 func TestIgnition_Generate(t *testing.T) {
 	setupIgnitionGenerateTest(t)
-	secretDataBytes, _ := base64.StdEncoding.DecodeString("super-secret")
+	secretDataBytes, err := base64.StdEncoding.DecodeString("super-secret")
+	assert.NoError(t, err)
 
 	cases := []struct {
 		name                                  string
@@ -422,7 +421,7 @@ metadata:
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			deps := buildIgnitionAssetDefaultDependencies()
+			deps := buildIgnitionAssetDefaultDependencies(t)
 
 			overrideDeps(deps, tc.overrideDeps)
 
@@ -449,6 +448,7 @@ metadata:
 }
 
 func setupIgnitionGenerateTest(t *testing.T) {
+	t.Helper()
 	// Generate calls addStaticNetworkConfig which calls nmstatectl
 	_, execErr := exec.LookPath("nmstatectl")
 	if execErr != nil {
@@ -457,8 +457,10 @@ func setupIgnitionGenerateTest(t *testing.T) {
 
 	// This patch currently allows testing the Ignition asset using the embedded resources.
 	// TODO: Replace it by mocking the filesystem in bootstrap.AddStorageFiles()
-	workingDirectory, _ := os.Getwd()
-	os.Chdir(path.Join(workingDirectory, "../../../../data"))
+	workingDirectory, err := os.Getwd()
+	assert.NoError(t, err)
+	err = os.Chdir(path.Join(workingDirectory, "../../../../data"))
+	assert.NoError(t, err)
 }
 
 func overrideDeps(deps []asset.Asset, overrides []asset.Asset) {
@@ -473,6 +475,7 @@ func overrideDeps(deps []asset.Asset, overrides []asset.Asset) {
 }
 
 func assertPreNetworkConfigServiceEnabled(t *testing.T, config *igntypes.Config, enabled bool) {
+	t.Helper()
 	for _, unit := range config.Systemd.Units {
 		if unit.Name == "pre-network-manager-config.service" {
 			if unit.Enabled == nil {
@@ -485,6 +488,7 @@ func assertPreNetworkConfigServiceEnabled(t *testing.T, config *igntypes.Config,
 }
 
 func assertExpectedFiles(t *testing.T, config *igntypes.Config, expectedFiles []string, expectedFileContent map[string]string) {
+	t.Helper()
 	if len(expectedFiles) > 0 {
 		assert.Equal(t, len(expectedFiles), len(config.Storage.Files))
 
@@ -509,8 +513,10 @@ func assertExpectedFiles(t *testing.T, config *igntypes.Config, expectedFiles []
 
 // This test util create the minimum valid set of dependencies for the
 // Ignition asset
-func buildIgnitionAssetDefaultDependencies() []asset.Asset {
-	secretDataBytes, _ := base64.StdEncoding.DecodeString("super-secret")
+func buildIgnitionAssetDefaultDependencies(t *testing.T) []asset.Asset {
+	t.Helper()
+	secretDataBytes, err := base64.StdEncoding.DecodeString("super-secret")
+	assert.NoError(t, err)
 
 	return []asset.Asset{
 		&manifests.AgentManifests{
@@ -661,7 +667,6 @@ func TestIgnition_getMirrorFromRelease(t *testing.T) {
 			mirror := mirror.GetMirrorFromRelease(tc.release, &tc.registriesConf)
 
 			assert.Equal(t, tc.expectedMirror, mirror)
-
 		})
 	}
 }
@@ -741,7 +746,6 @@ func TestIgnition_getPublicContainerRegistries(t *testing.T) {
 			publicContainerRegistries := getPublicContainerRegistries(&tc.registriesConf)
 
 			assert.Equal(t, tc.expectedRegistries, publicContainerRegistries)
-
 		})
 	}
 }
