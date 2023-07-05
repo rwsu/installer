@@ -240,11 +240,12 @@ func (a *Ignition) Generate(dependencies asset.Parents) error {
 func getDefaultEnabledServices() []string {
 	return []string{
 		"agent-interactive-console.service",
+		"agent-register-infraenv.service",
+		"agent-register-cluster.service",
 		"agent.service",
 		"assisted-service-db.service",
 		"assisted-service-pod.service",
 		"assisted-service.service",
-		"create-cluster-and-infraenv.service",
 		"node-zero.service",
 		"multipathd.service",
 		"selinux.service",
