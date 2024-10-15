@@ -43,6 +43,7 @@ func (a *AgentPXEFiles) Dependencies() []asset.Asset {
 
 // Generate generates the image files for PXE asset.
 func (a *AgentPXEFiles) Generate(_ context.Context, dependencies asset.Parents) error {
+	logrus.Infoln("RWSU Generate start")
 	agentArtifacts := &AgentArtifacts{}
 	dependencies.Get(agentArtifacts)
 
@@ -64,11 +65,13 @@ func (a *AgentPXEFiles) Generate(_ context.Context, dependencies asset.Parents) 
 		return err
 	}
 	a.kernelArgs = kernelArgs + string(agentArtifacts.Kargs)
+	logrus.Infoln("RWSU Generate end")
 	return nil
 }
 
 // PersistToFile writes the PXE assets in the assets folder named pxe.
 func (a *AgentPXEFiles) PersistToFile(directory string) error {
+	logrus.Infoln("RWSU PersistToFile start")
 	var kernelFileType string
 	// If the imageReader is not set then it means that either one of the AgentPXEFiles
 	// dependencies or the asset itself failed for some reason
@@ -78,16 +81,20 @@ func (a *AgentPXEFiles) PersistToFile(directory string) error {
 
 	defer a.imageReader.Close()
 	bootArtifactsFullPath := filepath.Join(directory, bootArtifactsPath)
+	logrus.Infof("RWSU bootArtifactsFullPath %v", bootArtifactsFullPath)
 
 	err := createDir(bootArtifactsFullPath)
 	if err != nil {
 		return err
 	}
 
+	logrus.Infoln("RWSU extractRootFS start")
 	err = extractRootFS(bootArtifactsFullPath, a.tmpPath, a.cpuArch)
 	if err != nil {
+		logrus.Infoln("RWSU extractRootFS error")
 		return err
 	}
+	logrus.Infoln("RWSU extractRootFS start")
 
 	agentInitrdFile := filepath.Join(bootArtifactsFullPath, fmt.Sprintf("agent.%s-initrd.img", a.cpuArch))
 	err = copyfile(agentInitrdFile, a.imageReader)
@@ -142,6 +149,7 @@ func (a *AgentPXEFiles) PersistToFile(directory string) error {
 	logrus.Infof("PXE boot artifacts created in: %s", bootArtifactsFullPath)
 	logrus.Infof("Kernel parameters for PXE boot: %s", a.kernelArgs)
 
+	logrus.Infoln("RWSU PersistToFile end")
 	return nil
 }
 

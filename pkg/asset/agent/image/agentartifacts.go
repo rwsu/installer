@@ -16,6 +16,7 @@ import (
 	"github.com/openshift/installer/pkg/asset/agent/manifests"
 	"github.com/openshift/installer/pkg/asset/agent/mirror"
 	"github.com/openshift/installer/pkg/asset/agent/workflow"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -220,7 +221,12 @@ func createDir(bootArtifactsFullPath string) error {
 
 func extractRootFS(bootArtifactsFullPath, agentISOPath, arch string) error {
 	agentRootfsimgFile := filepath.Join(bootArtifactsFullPath, fmt.Sprintf("agent.%s-rootfs.img", arch))
+	logrus.Infof("RWSU agentRootfsimgFile %v", agentRootfsimgFile)
 	rootfsReader, err := os.Open(filepath.Join(agentISOPath, "images", "pxeboot", "rootfs.img"))
+	logrus.Infof("RWSU rootfsReader %v", filepath.Join(agentISOPath, "images", "pxeboot", "rootfs.img"))
+	// logrus.Infof("RWSU sleep")
+	// time.Sleep(600 * time.Second)
+	// logrus.Infof("RWSU sleep done")
 	if err != nil {
 		return err
 	}
